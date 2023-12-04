@@ -1,0 +1,45 @@
+FROM ubuntu:bionic
+
+RUN \
+apt update && \
+apt -y install curl
+
+RUN \
+mkdir /ethereum && \
+mkdir /ethereum/execution && \
+cd /ethereum/execution && \
+curl https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.11.5-a38f4108.tar.gz | tar zx && \
+mv geth-* geth
+
+RUN \
+mkdir /ethereum/consensus && \
+mkdir /ethereum/consensus/prysm && \
+cd /ethereum/consensus/prysm && \
+curl https://prysmaticlabs.com/releases/beacon-chain-v4.0.2-linux-amd64 --output beacon-chain && chmod 777 beacon-chain && \
+#curl https://prysmaticlabs.com/releases/client-stats-v4.0.2-linux-amd64 --output client-stats && chmod 777 client-stats && \
+#curl https://prysmaticlabs.com/releases/prysmctl-v4.0.2-linux-amd64 --output prysmctl && chmod 777 prysmctl && \
+curl https://prysmaticlabs.com/releases/validator-v4.0.2-linux-amd64 --output validator && chmod 777 validator
+
+RUN \
+mkdir /root/.ethereum && \
+mkdir /root/.eth2
+
+ENV NETWORK=sepolia
+# allowed values is: sepolia, goerli, mainnet
+ENV CHECKPOINT_SYNC_URL="https://beaconstate-\$NETWORK.chainsafe.io"
+ENV GENESIS_BEACON_API_URL="https://beaconstate-\$NETWORK.chainsafe.io"
+
+RUN \
+echo "eval CHECKPOINT_SYNC_URL=\$CHECKPOINT_SYNC_URL" >> /ethereum/start.sh && \
+echo "eval GENESIS_BEACON_API_URL=\$GENESIS_BEACON_API_URL" >> /ethereum/start.sh && \
+echo "while true" >> /ethereum/start.sh && \
+echo "do" >> /ethereum/start.sh && \
+echo "    [ \`pgrep geth | head -n 1\` ] || (echo 'geth not running, starting!' && /ethereum/execution/geth/geth --\$NETWORK --datadir /root/.ethereum --http --http.api eth,net,engine,admin &)" >> /ethereum/start.sh && \
+echo "    [ \`pgrep beacon-chain | head -n 1\` ] || (echo 'prysm not running, starting!' && /ethereum/consensus/prysm/beacon-chain --\$NETWORK --execution-endpoint=/root/.ethereum/geth.ipc --accept-terms-of-use --checkpoint-sync-url=\$CHECKPOINT_SYNC_URL --genesis-beacon-api-url=\$GENESIS_BEACON_API_URL &)" >> /ethereum/start.sh && \
+echo "    sleep 99" >> /ethereum/start.sh && \
+echo "done" >> /ethereum/start.sh && \
+chmod 777 /ethereum/start.sh
+
+EXPOSE 30303
+
+CMD bash /ethereum/start.sh

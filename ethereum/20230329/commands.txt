@@ -1,0 +1,2 @@
+/ethereum/execution/geth/geth --goerli --http --http.api eth,net,engine,admin
+/ethereum/consensus/prysm/beacon-chain --prater --execution-endpoint=$HOME/.ethereum/goerli/geth.ipc --accept-terms-of-use --suggested-fee-recipient=0x01234567722E6b0000012BFEBf6177F1D2e9758D9 --checkpoint-sync-url=https://beaconstate-goerli.chainsafe.io --genesis-beacon-api-url=https://beaconstate-goerli.chainsafe.io
