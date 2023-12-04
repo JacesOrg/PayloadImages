@@ -1,0 +1,21 @@
+FROM ubuntu:bionic
+
+RUN \
+apt update && \
+apt -y install curl
+
+RUN \
+mkdir /ethereum && \
+mkdir /ethereum/execution && \
+cd /ethereum/execution && \
+curl https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.10.26-e5eb32ac.tar.gz | tar zx && \
+mv geth-* geth
+
+RUN \
+mkdir /ethereum/consensus && \
+mkdir /ethereum/consensus/prysm && \
+cd /ethereum/consensus/prysm && \
+curl https://prysmaticlabs.com/releases/beacon-chain-v3.2.0-linux-amd64 --output beacon-chain && chmod 777 beacon-chain && \
+curl https://prysmaticlabs.com/releases/validator-v3.2.0-linux-amd64 --output validator && chmod 777 validator && \
+curl https://prysmaticlabs.com/releases/client-stats-v3.2.0-linux-amd64 --output client-stats && chmod 777 client-stats && \
+curl https://prysmaticlabs.com/releases/prysmctl-v3.2.0-linux-amd64 --output prysmctl && chmod 777 prysmctl
